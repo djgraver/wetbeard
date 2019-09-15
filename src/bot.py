@@ -12,6 +12,7 @@ class MyBot(BaseAgent):
     def initialize_agent(self):
         # This runs once before the bot starts up
         self.controller_state = SimpleControllerState()
+        
 
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
         ball_location = Vec3(packet.game_ball.physics.location)
@@ -23,17 +24,22 @@ class MyBot(BaseAgent):
 
         # Find the direction of our car using the Orientation class
         car_orientation = Orientation(my_car.physics.rotation)
+        action_display = "Car Ori: " + car_orientation
         car_direction = car_orientation.forward
+        action_display = "Car Dir: " + car_direction
 
         steer_correction_radians = find_correction(car_direction, car_to_ball)
 
-        if steer_correction_radians > 0:
+        if steer_correction_radians > 2:
             # Positive radians in the unit circle is a turn to the left.
             turn = -1.0  # Negative value for a turn to the left.
-            action_display = "turn left"
-        else:
+            action_display = "Turn: L"
+        else if steer_correction_radians < 2:
             turn = 1.0
-            action_display = "turn right"
+            action_display = "Turn: R"
+        else:
+            turn = 0.0
+            action_display = "Turn: -"
 
         self.controller_state.throttle = 1.0
         self.controller_state.steer = turn
@@ -67,5 +73,5 @@ def draw_debug(renderer, car, ball, action_display):
     # draw a line from the car to the ball
     renderer.draw_line_3d(car.physics.location, ball.physics.location, renderer.white())
     # print the action that the bot is taking
-    renderer.draw_string_3d(car.physics.location, 2, 2, action_display, renderer.white())
+    renderer.draw_string_3d(car.physics.location, 1, 1, action_display, renderer.white())
     renderer.end_rendering()
